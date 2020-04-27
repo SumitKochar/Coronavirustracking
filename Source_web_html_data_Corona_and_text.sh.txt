@@ -1,0 +1,98 @@
+##Script name - Source_web_html_data_Corona_and_text.sh
+
+##########Start of script#######################################################################################
+
+
+#!/bin/bash
+
+####This script is intended to run to get latest numbers from internet source worldometers.info and capture details related to total cases, deaths cases in World and USA only. 
+
+
+####The customized text sent is in below format:
+
+####Total cases in US - xxxx
+####Total deaths in US - xxxx
+####Total cases in World - xxxx
+####Total deaths in World - xxxx
+
+
+##################################################################################
+
+
+wget --output-document US_Corona_Cases.html https://www.worldometers.info/coronavirus/country/us/
+
+
+grep -i "United States Coronavirus:" US_Corona_Cases.html > US_cases_deaths.log
+
+
+cat US_cases_deaths.log | cut -d' ' -f4 > total_US_cases.log
+
+
+
+######Final output for Total cases in US to be used in SMS text############################################
+
+
+sed 's/^/Total cases in US - /' total_US_cases.log  > total_US_cases_SMS_format_final.txt
+
+
+cat US_cases_deaths.log | cut -d' ' -f7 > total_US_deaths.log
+
+
+######Final output for Total deaths in US to be used in SMS text##############################################
+
+
+sed 's/^/Total deaths in US - /' total_US_deaths.log  > total_US_deaths_SMS_format_final.txt
+
+
+##################################################################################
+
+
+wget --output-document World_Corona_Cases.html https://www.worldometers.info/coronavirus/
+
+
+grep -i "Coronavirus Update (Live):" World_Corona_Cases.html > world_cases_deaths.log
+
+
+cat world_cases_deaths.log | cut -d' ' -f4 > total_world_cases.log
+
+
+######Final output for Total cases in World to be used in SMS text############################################
+
+
+sed 's/^/Total cases in World - /' total_world_cases.log  > total_world_cases_SMS_format_final.txt
+
+
+cat world_cases_deaths.log | cut -d' ' -f7 > total_world_deaths.log
+
+
+######Final output for Total deaths in World to be used in SMS text##############################################
+
+
+sed 's/^/Total deaths in World - /' total_world_deaths.log  > total_world_deaths_SMS_format_final.txt
+
+
+date > date.txt
+
+
+######Text format and send###########################
+
+
+cat date.txt total_US_cases_SMS_format_final.txt total_US_deaths_SMS_format_final.txt total_world_cases_SMS_format_final.txt total_world_deaths_SMS_format_final.txt > SMS.txt
+
+
+curl --url 'smtps://smtp.gmail.com:465' --ssl-reqd   --mail-from 'Your name' --mail-rcpt 'yourphonenumber@phonecompanyemaildomain'   --upload-file SMS.txt --user 'gmail_username:gmail_password'
+
+
+##Author - Sumit Kochar
+##Intended use -> Coronavirus 2020 automated tracking and texting
+##This script is for testing purposes only and free for use on own discretion
+##This script sources information from https://www.worldometers.info/coronavirus/
+##This script needs to be deployed on a Linux server on cron
+##In last text statement, the mail recipient, gmail username/password and sender name has to be updated for user
+##In user GMAIL email settings set this to On -> Less secure app access. Gmail recommendation is to set to OFF but has to be ON if script is required since linux terminal logs in to Gmail in this case to send text to phone
+##The yourphonenumber@phonecompanyemaildomain has to be replaced example phonenumber@txt.att.net for ATT and phonenumber@tmomail.net for T-Mobile. Other mobile providers will have domain names which will be need to be replaced respectively.
+##After changes, provide permissions on script using command -> chown u+x Source_web_html_data_Corona_and_text.sh. Then the deployment is to just schedule the Source_web_html_data_Corona_and_text.sh script on cron at intended time
+
+
+
+##########End of script#######################################################################################
